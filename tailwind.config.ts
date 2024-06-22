@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import daisyui from "daisyui";
+import daisyUIThemes from "daisyui/src/theming/themes";
 
 const config: Config = {
   content: [
@@ -8,6 +10,11 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: {
+        blue: {
+          1: "#1D9BF0",
+        },
+      },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
@@ -15,6 +22,19 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [daisyui],
+  daisyui: {
+    themes: [
+      "light",
+      {
+        black: {
+          ...daisyUIThemes["black"],
+          primary: "rgb(29, 155, 240)", //#1D9BF0
+          secondary: "rgb(24, 24, 24)", //#181818
+        },
+      },
+    ],
+  },
 };
+
 export default config;
