@@ -11,19 +11,26 @@ const EditProfileModal = () => {
     currentPassword: "",
   });
 
-  const handleInputChange = (e: any) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
   };
 
   return (
     <>
       <button
         className="btn btn-outline rounded-full btn-sm"
-        onClick={() =>
-          (
-            document.getElementById("edit_profile_modal") as HTMLDialogElement
-          )?.showModal()
-        }
+        onClick={() => {
+          const modal = document.getElementById(
+            "edit_profile_modal"
+          ) as HTMLDialogElement;
+          modal?.showModal();
+        }}
       >
         Edit profile
       </button>
@@ -46,47 +53,13 @@ const EditProfileModal = () => {
                 name="fullName"
                 onChange={handleInputChange}
               />
-              <input
-                type="text"
-                placeholder="Username"
-                className="flex-1 input border border-gray-700 rounded p-2 input-md"
-                value={formData.username}
-                name="username"
-                onChange={handleInputChange}
-              />
             </div>
             <div className="flex flex-wrap gap-2">
-              <input
-                type="email"
-                placeholder="Email"
-                className="flex-1 input border border-gray-700 rounded p-2 input-md"
-                value={formData.email}
-                name="email"
-                onChange={handleInputChange}
-              />
               <textarea
                 placeholder="Bio"
                 className="flex-1 input border border-gray-700 rounded p-2 input-md"
                 value={formData.bio}
                 name="bio"
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <input
-                type="password"
-                placeholder="Current Password"
-                className="flex-1 input border border-gray-700 rounded p-2 input-md"
-                value={formData.currentPassword}
-                name="currentPassword"
-                onChange={handleInputChange}
-              />
-              <input
-                type="password"
-                placeholder="New Password"
-                className="flex-1 input border border-gray-700 rounded p-2 input-md"
-                value={formData.newPassword}
-                name="newPassword"
                 onChange={handleInputChange}
               />
             </div>
@@ -110,4 +83,5 @@ const EditProfileModal = () => {
     </>
   );
 };
+
 export default EditProfileModal;

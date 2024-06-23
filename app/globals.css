@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .placeholder-opacity-60::placeholder {
+    @apply text-white opacity-60;
+  }
+}

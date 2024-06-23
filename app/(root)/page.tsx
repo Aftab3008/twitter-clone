@@ -1,6 +1,7 @@
 "use client";
 
 import CreatePost from "@/components/shared/CreatePost";
+import CreatePostZod from "@/components/shared/CreatePostZod";
 import Posts from "@/components/shared/Posts";
 import { useState } from "react";
 
@@ -19,7 +20,7 @@ export default function Home() {
           >
             For you
             {feedType === "forYou" && (
-              <div className="absolute bottom-0 w-10  h-1 rounded-full bg-primary"></div>
+              <div className="absolute bottom-0 w-10  h-1 rounded-full bg-blue-1"></div>
             )}
           </div>
           <div
@@ -28,13 +29,13 @@ export default function Home() {
           >
             Following
             {feedType === "following" && (
-              <div className="absolute bottom-0 w-10  h-1 rounded-full bg-primary"></div>
+              <div className="absolute bottom-0 w-10  h-1 rounded-full bg-blue-1"></div>
             )}
           </div>
         </div>
 
         {/*  CREATE POST INPUT */}
-        <CreatePost />
+        <CreatePostZod />
 
         {/* POSTS */}
         <Posts feedType={feedType} />
