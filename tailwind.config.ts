@@ -25,6 +25,9 @@ module.exports = withUt({
         blue: {
           1: "#1D9BF0",
         },
+        gray: {
+          1: "#333333",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

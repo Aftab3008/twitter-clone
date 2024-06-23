@@ -7,3 +7,13 @@
     @apply text-white opacity-60;
   }
 }
+
+@layer utilities {
+  .epr_-8623pq {
+    @apply bg-gray-1;
+  }
+
+  .epr_x558go:focus {
+    @apply bg-gray-1 !important;
+  }
+}

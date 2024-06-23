@@ -5,7 +5,7 @@ import { connectToDatabase } from "../database";
 import Post from "../database/models/posts.model";
 import { handleError } from "../utils";
 import { createNotification } from "./notifications.actions";
-import { utapi } from "../uploadthingFunc";
+import { deletefiles } from "../uploadthingFunc";
 
 interface CreatePostProps {
   authorId: string;
@@ -32,7 +32,7 @@ export async function deletePost(postId: string) {
     await connectToDatabase();
     const post = await Post.findById(postId);
     if (post?.postImg) {
-      utapi.deleteFiles(post.postImg);
+      await deletefiles(post.postImg);
     }
     await Post.findByIdAndDelete(postId);
     return { statusCode: "ok", message: "Post deleted successfully" };
@@ -69,7 +69,7 @@ export async function likeOrUnlikePost(postId: string, userId: string) {
     }
     const isLiked = post.likes.includes(new mongoose.Types.ObjectId(userId));
     if (isLiked) {
-      post.likes = post.likes.filter((id) => id.toString() !== userId);
+      post.likes = post.likes.filter((id: string) => id.toString() !== userId);
     } else {
       post.likes.push(new mongoose.Types.ObjectId(userId));
       await createNotification(

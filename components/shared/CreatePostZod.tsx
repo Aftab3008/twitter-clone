@@ -15,13 +15,16 @@ import { useRef, useState } from "react";
 import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { Textarea } from "../ui/textarea";
-import { convertFileToUrl } from "@/lib/utils";
+import { cn, convertFileToUrl } from "@/lib/utils";
 import { useUploadThing } from "@/lib/uploadthing";
 import { createPost } from "@/lib/actions/posts.actions";
 import { useUser } from "@clerk/nextjs";
 import { useGetUser } from "@/hooks/useGetuser";
 import toast from "react-hot-toast";
 import { deletefiles } from "@/lib/uploadthingFunc";
+import { Loader } from "lucide-react";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import { Theme } from "emoji-picker-react";
 
 const formSchema = z.object({
   text: z.string().min(2, {
@@ -36,6 +39,7 @@ export default function CreatePostZod() {
   const { startUpload } = useUploadThing("imageUploader");
   const [img, setImg] = useState<string | null>(null);
   const imgRef = useRef<HTMLInputElement>(null);
+  const [emojiopen, setEmojiopen] = useState(false);
   const data = {
     profileImg: "/avatars/boy1.png",
   };
@@ -65,6 +69,7 @@ export default function CreatePostZod() {
     } else {
       toast.success("Post created successfully");
     }
+    setImg(null);
     form.reset();
   }
 
@@ -92,6 +97,7 @@ export default function CreatePostZod() {
                   <Textarea
                     placeholder="What is happening?!"
                     className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none  border-gray-800 placeholder-opacity-60"
+                    onFocus={() => setEmojiopen(false)}
                     {...field}
                   />
                 </FormControl>
@@ -111,7 +117,9 @@ export default function CreatePostZod() {
               <img
                 src={img}
                 className="w-full mx-auto h-72 object-contain rounded"
-                onClick={() => imgRef.current?.click()}
+                onClick={() => {
+                  imgRef.current?.click();
+                }}
                 alt="Selected"
               />
             </div>
@@ -120,9 +128,39 @@ export default function CreatePostZod() {
             <div className="flex gap-1 items-center">
               <CiImageOn
                 className="fill-blue-1 w-6 h-6 cursor-pointer"
-                onClick={() => imgRef.current?.click()}
+                onClick={() => {
+                  imgRef.current?.click();
+                  setEmojiopen(false);
+                }}
               />
-              <BsEmojiSmileFill className="fill-blue-1 w-5 h-5 cursor-pointer" />
+              <div className="relative">
+                <BsEmojiSmileFill
+                  className="fill-blue-1 w-5 h-5 cursor-pointer"
+                  onClick={() => setEmojiopen((prev) => !prev)}
+                />
+                <EmojiPicker
+                  open={emojiopen}
+                  onEmojiClick={(
+                    emojiData: EmojiClickData,
+                    event: MouseEvent
+                  ) => {
+                    form.setValue(
+                      "text",
+                      form.getValues("text") + emojiData.emoji
+                    );
+                  }}
+                  style={{
+                    color: "#fff",
+                    position: "absolute",
+                    top: "calc(100% + 5px)",
+                    left: 0,
+                    zIndex: 999,
+                  }}
+                  theme={Theme.DARK}
+                  autoFocusSearch={false}
+                  className="epr_x558go"
+                />
+              </div>
             </div>
             <FormField
               control={form.control}
@@ -150,10 +188,16 @@ export default function CreatePostZod() {
             />
             <Button
               type="submit"
-              className="btn bg-blue-1 rounded-full btn-sm text-white px-4 hover:border-blue-1 transition-all ease-in-out duration-300 border-blue-1"
+              className={cn(
+                "btn rounded-full btn-sm text-white px-4 transition-all ease-in-out duration-300 bg-blue-1 hover:bg-blue-600 hover:border-blue-600 border-blue-1"
+              )}
               disabled={form.formState.isSubmitting}
             >
-              {form.formState.isSubmitting ? "Posting..." : "Post"}
+              {form.formState.isSubmitting ? (
+                <Loader size={30} color="white" className="animate-spin" />
+              ) : (
+                "Post"
+              )}
             </Button>
           </div>
         </form>

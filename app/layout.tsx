@@ -3,12 +3,14 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "X",
-  description: "X is a social media platform.",
+  title: "𝕏 | Twitter",
+  description: "𝕏 is a social media platform.",
+  icons: "/public/logo.svg",
 };
 
 const localiztion = {
@@ -36,7 +38,6 @@ export default function RootLayout({
       appearance={{
         baseTheme: dark,
         layout: {
-          logoImageUrl: "/icons/yoom-logo.svg",
           socialButtonsPlacement: "bottom",
           socialButtonsVariant: "blockButton",
         },
@@ -54,7 +55,18 @@ export default function RootLayout({
       localization={localiztion}
     >
       <html lang="en" data-theme="black">
-        <body className={inter.className}>{children}</body>
+        <body className={inter.className}>
+          {children}
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              style: {
+                background: "#333333",
+                color: "#fff",
+              },
+            }}
+          />
+        </body>
       </html>
     </ClerkProvider>
   );
