@@ -38,7 +38,7 @@ export default function Home() {
         <CreatePostZod />
 
         {/* POSTS */}
-        <Posts feedType={feedType} />
+        {/* <Posts feedType={feedType} /> */}
       </div>
     </>
   );
