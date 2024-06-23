@@ -21,7 +21,7 @@ export type UpdateParams = {
   link?: string;
 };
 
-export interface User {
+export interface Usertypes {
   _id: string;
   username: string;
   fullName: string;

@@ -5,7 +5,6 @@ import { connectToDatabase } from "../database";
 import User from "../database/models/user.model";
 import { handleError } from "../utils";
 import { createNotification } from "./notifications.actions";
-import { useUploadThing } from "../uploadthing";
 
 export async function createUser({
   username,
@@ -93,9 +92,11 @@ export async function followUser(username: string, userToFollow: string) {
 
     let message;
     if (user.following.includes(userToModify._id)) {
-      user.following = user.following.filter((id) => id !== userToModify._id);
+      user.following = user.following.filter(
+        (id: string) => id !== userToModify._id
+      );
       userToModify.followers = userToModify.followers.filter(
-        (id) => id !== user._id
+        (id: string) => id !== user._id
       );
       message = `You have unfollowed ${userToFollow}.`;
     } else {

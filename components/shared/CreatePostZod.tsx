@@ -7,7 +7,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -20,8 +19,9 @@ import { convertFileToUrl } from "@/lib/utils";
 import { useUploadThing } from "@/lib/uploadthing";
 import { createPost } from "@/lib/actions/posts.actions";
 import { useUser } from "@clerk/nextjs";
-import { getUserbyId } from "@/lib/actions/user.actions";
 import { useGetUser } from "@/hooks/useGetuser";
+import toast from "react-hot-toast";
+import { deletefiles } from "@/lib/uploadthingFunc";
 
 const formSchema = z.object({
   text: z.string().min(2, {
@@ -58,6 +58,12 @@ export default function CreatePostZod() {
       postImg: imageUrl?.[0]?.url || undefined,
     });
     if (!newPost) {
+      toast.error("Failed to create post");
+      if (imageUrl) {
+        await deletefiles(imageUrl[0].url);
+      }
+    } else {
+      toast.success("Post created successfully");
     }
     form.reset();
   }
