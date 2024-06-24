@@ -3,9 +3,11 @@
 import mongoose from "mongoose";
 import { connectToDatabase } from "../database";
 import Post from "../database/models/posts.model";
-import { handleError } from "../utils";
+import { handleError, removePrefix } from "../utils";
 import { createNotification } from "./notifications.actions";
 import { deletefiles } from "../uploadthingFunc";
+import User from "../database/models/user.model";
+import { revalidatePath } from "next/cache";
 
 interface CreatePostProps {
   authorId: string;
@@ -21,6 +23,7 @@ export async function createPost({ authorId, text, postImg }: CreatePostProps) {
       text,
       postImg,
     });
+    revalidatePath("/");
     return JSON.parse(JSON.stringify(newPost));
   } catch (error) {
     handleError(error);
@@ -31,11 +34,15 @@ export async function deletePost(postId: string) {
   try {
     await connectToDatabase();
     const post = await Post.findById(postId);
-    if (post?.postImg) {
-      await deletefiles(post.postImg);
+    if (!post) {
+      throw new Error("Post not found");
     }
-    await Post.findByIdAndDelete(postId);
-    return { statusCode: "ok", message: "Post deleted successfully" };
+    if (post?.postImg) {
+      const imageUrl = removePrefix(post.postImg);
+      await deletefiles(imageUrl);
+    }
+    const deletedPost = await Post.findByIdAndDelete(postId);
+    return JSON.parse(JSON.stringify(deletedPost));
   } catch (error) {
     handleError(error);
   }
@@ -81,6 +88,32 @@ export async function likeOrUnlikePost(postId: string, userId: string) {
     }
     await post.save();
     return JSON.parse(JSON.stringify(post));
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+export async function getPosts(feedType?: string, username?: string) {
+  try {
+    await connectToDatabase();
+    let posts;
+    if (username) {
+      const user = await User.findOne({ username });
+      if (!user) {
+        throw new Error("User not found");
+      }
+      posts = await Post.find({ authorId: user._id })
+        .sort({ createdAt: -1 })
+        .populate(
+          "authorId",
+          "fullName username imgUrl clerkId email followers following bio link coverImgUrl"
+        );
+    } else {
+      posts = await Post.find()
+        .sort({ createdAt: -1 })
+        .populate("authorId", "fullName username imgUrl clerkId");
+    }
+    return JSON.parse(JSON.stringify(posts));
   } catch (error) {
     handleError(error);
   }

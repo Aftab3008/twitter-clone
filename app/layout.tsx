@@ -10,13 +10,13 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "𝕏 | Twitter",
   description: "𝕏 is a social media platform.",
-  icons: "/public/logo.svg",
+  icons: "/icons/logo.svg",
 };
 
 const localiztion = {
   signIn: {
     start: {
-      title: "Welcome back to X",
+      title: "Welcome back to 𝕏",
       subtitle: "Sign in to continue",
     },
   },

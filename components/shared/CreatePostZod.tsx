@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { IoCloseSharp } from "react-icons/io5";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { Textarea } from "../ui/textarea";
@@ -40,9 +40,7 @@ export default function CreatePostZod() {
   const [img, setImg] = useState<string | null>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const [emojiopen, setEmojiopen] = useState(false);
-  const data = {
-    profileImg: "/avatars/boy1.png",
-  };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -78,7 +76,9 @@ export default function CreatePostZod() {
       <div className="avatar">
         <div className="w-8 rounded-full">
           <img
-            src={data.profileImg || "/avatar-placeholder.png"}
+            src={
+              userData?.imgUrl || user?.imageUrl || "/avatar-placeholder.png"
+            }
             alt="Profile"
           />
         </div>

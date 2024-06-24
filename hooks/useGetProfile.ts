@@ -1,19 +1,19 @@
-import { getUserbyclerkId } from "@/lib/actions/user.actions";
+import { getUserProfile } from "@/lib/actions/user.actions";
 import { Usertypes } from "@/types";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export const useGetUser = (clerkId: string) => {
+export const useGetProfile = (username: string) => {
   const [user, setUser] = useState<Usertypes | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchProfile = async () => {
       setLoading(true);
       setError(null);
       try {
-        const userData = await getUserbyclerkId(clerkId);
-        setUser(userData);
+        const user = await getUserProfile(username);
+        setUser(user);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -21,10 +21,8 @@ export const useGetUser = (clerkId: string) => {
       }
     };
 
-    if (clerkId) {
-      fetchUser();
-    }
-  }, [clerkId]);
+    fetchProfile();
+  }, [username]);
 
   return { user, loading, error };
 };

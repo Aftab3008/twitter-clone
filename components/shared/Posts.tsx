@@ -1,26 +1,36 @@
 import { POSTS } from "@/constants/dummy";
 import PostSkeleton from "./skeletons/PostSkeleton";
 import Post from "./Post";
+import { useGetPosts } from "@/hooks/useGetPosts";
+import { useUser } from "@clerk/nextjs";
 
-const Posts = () => {
-  const isLoading = false;
+const Posts = ({
+  feedType,
+  username,
+}: {
+  feedType?: string;
+  username?: string;
+}) => {
+  const { posts, loading, error } = useGetPosts(feedType, username);
+  const { user } = useUser();
+  const currentUserId = user?.id;
 
   return (
     <>
-      {isLoading && (
+      {loading && (
         <div className="flex flex-col justify-center">
           <PostSkeleton />
           <PostSkeleton />
           <PostSkeleton />
         </div>
       )}
-      {!isLoading && POSTS?.length === 0 && (
-        <p className="text-center my-4">No posts in this tab. Switch 👻</p>
+      {!loading && posts?.length === 0 && (
+        <p className="text-center my-4">No posts done by you </p>
       )}
-      {!isLoading && POSTS && (
+      {!loading && POSTS && (
         <div>
-          {POSTS.map((post) => (
-            <Post key={post._id} post={post} />
+          {posts.map((post) => (
+            <Post key={post._id} post={post} currentUserId={currentUserId} />
           ))}
         </div>
       )}

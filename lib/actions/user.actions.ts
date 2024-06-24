@@ -5,6 +5,9 @@ import { connectToDatabase } from "../database";
 import User from "../database/models/user.model";
 import { handleError } from "../utils";
 import { createNotification } from "./notifications.actions";
+import Post from "../database/models/posts.model";
+import Notification from "../database/models/notifications.model";
+import { ObjectId } from "mongodb";
 
 export async function createUser({
   username,
@@ -42,12 +45,16 @@ export async function updateUser(clerkId: string, user: UpdateUserParams) {
   }
 }
 
-export async function updateById(clerkId: string, user: UpdateParams) {
+export async function updateByUsername(username: string, user: UpdateParams) {
   try {
     await connectToDatabase();
-    const updatedUser = await User.findOneAndUpdate({ clerkId }, user, {
-      new: true,
-    });
+    const updatedUser = await User.findOneAndUpdate(
+      { username: username },
+      user,
+      {
+        new: true,
+      }
+    );
     if (!updatedUser) throw new Error("User update failed");
     return JSON.parse(JSON.stringify(updatedUser));
   } catch (error) {
@@ -66,16 +73,16 @@ export async function getUserProfile(username: string) {
   }
 }
 
-export async function getUserSuggetions(clerkId: string) {
+export async function getUserSuggetions(id: string) {
   try {
     await connectToDatabase();
-    const userFollowedbyMe = await User.findOne({ clerkId }).select(
+    const userFollowedbyMe = await User.findOne({ _id: id }).select(
       "following"
     );
     const suggestions = await User.aggregate([
-      { $match: { clerkId: { $ne: clerkId } } },
+      { $match: { _id: { $ne: new ObjectId(id) } } },
       { $match: { _id: { $nin: userFollowedbyMe?.following || [] } } },
-      { $sample: { size: 10 } },
+      { $sample: { size: 6 } },
     ]);
     return JSON.parse(JSON.stringify(suggestions));
   } catch (error) {
@@ -118,12 +125,49 @@ export async function followUser(username: string, userToFollow: string) {
   }
 }
 
-export async function getUserbyId(clerkId: string) {
+export async function getUserbyclerkId(clerkId: string) {
+  try {
+    await connectToDatabase();
+    const user = await User.findOne({ clerkId: clerkId });
+    if (!user) throw new Error("User not found");
+    return JSON.parse(JSON.stringify(user));
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+export async function getUserbyId(id: string) {
+  try {
+    await connectToDatabase();
+    const user = await User.findById(id);
+    if (!user) throw new Error("User not found");
+    return JSON.parse(JSON.stringify(user));
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+export async function getonlyUserId(clerkId: string) {
+  try {
+    await connectToDatabase();
+    const user = await User.findOne({ clerkId }).select("_id");
+    if (!user) throw new Error("User not found");
+    return JSON.parse(JSON.stringify(user));
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+export async function deleteUser(clerkId: string) {
   try {
     await connectToDatabase();
     const user = await User.findOne({ clerkId });
     if (!user) throw new Error("User not found");
-    return JSON.parse(JSON.stringify(user));
+    const deletePost = await Post.deleteMany({ authorId: user._id });
+    const deleteNotifications = await Notification.deleteMany({
+      $or: [{ from: user._id }, { to: user._id }],
+    });
+    await User.findByIdAndDelete(user._id);
   } catch (error) {
     handleError(error);
   }

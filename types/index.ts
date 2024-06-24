@@ -15,8 +15,8 @@ export type UpdateUserParams = {
 
 export type UpdateParams = {
   fullName?: string;
-  imageUrl?: string;
-  coverImageUrl?: string;
+  imgUrl?: string;
+  coverImgUrl?: string;
   bio?: string;
   link?: string;
 };
@@ -33,6 +33,36 @@ export interface Usertypes {
   bio: string;
   link: string;
   clerkId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Comment {
+  text: string;
+  user: string;
+}
+
+export interface Author {
+  _id: string;
+  fullName: string;
+  username: string;
+  imgUrl: string;
+  clerkId: string;
+  email?: string;
+  followers?: string[];
+  following?: string[];
+  bio?: string;
+  link?: string;
+  coverImgUrl?: string;
+}
+
+export interface Posttypes {
+  _id: string;
+  authorId: Author;
+  text?: string;
+  postImg?: string;
+  likes: string[];
+  comments: Comment[];
   createdAt: Date;
   updatedAt: Date;
 }

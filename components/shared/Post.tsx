@@ -5,19 +5,34 @@ import { FaRegBookmark } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
 import { useState } from "react";
 import Link from "next/link";
+import { Posttypes } from "@/types";
+import { formatPostDate } from "@/lib/utils";
+import { deletePost } from "@/lib/actions/posts.actions";
+import toast from "react-hot-toast";
 
-const Post = ({ post }: any) => {
+const Post = ({
+  post,
+  currentUserId,
+}: {
+  post: Posttypes;
+  currentUserId?: string;
+}) => {
   const [comment, setComment] = useState("");
-  const postOwner = post.user;
+  const postOwner = post.authorId;
   const isLiked = false;
 
-  const isMyPost = true;
-
-  const formattedDate = "1h";
+  const isMyPost = post.authorId.clerkId === currentUserId;
 
   const isCommenting = false;
 
-  const handleDeletePost = () => {};
+  const handleDeletePost = async () => {
+    const deletedPost = await deletePost(post._id);
+    if (deletedPost) {
+      toast.success("Post deleted successfully");
+    } else {
+      toast.error("Failed to delete post");
+    }
+  };
 
   const handlePostComment = (e: any) => {
     e.preventDefault();
@@ -30,23 +45,29 @@ const Post = ({ post }: any) => {
       <div className="flex gap-2 items-start p-4 border-b border-gray-700">
         <div className="avatar">
           <Link
-            href={`/profile/${postOwner.username}`}
+            href={`/profile/${postOwner?.username}`}
             className="w-8 rounded-full overflow-hidden"
           >
-            <img src={postOwner.profileImg || "/avatar-placeholder.png"} />
+            <img
+              src={postOwner?.imgUrl || "/avatar-placeholder.png"}
+              className="rounded-full"
+            />
           </Link>
         </div>
         <div className="flex flex-col flex-1">
           <div className="flex gap-2 items-center">
-            <Link href={`/profile/${postOwner.username}`} className="font-bold">
-              {postOwner.fullName}
+            <Link
+              href={`/profile/${postOwner?.username}`}
+              className="font-bold"
+            >
+              {postOwner?.fullName}
             </Link>
             <span className="text-gray-700 flex gap-1 text-sm">
-              <Link href={`/profile/${postOwner.username}`}>
-                @{postOwner.username}
+              <Link href={`/profile/${postOwner?.username}`}>
+                @{postOwner?.username}
               </Link>
               <span>·</span>
-              <span>{formattedDate}</span>
+              <span>{formatPostDate(post.createdAt)}</span>
             </span>
             {isMyPost && (
               <span className="flex justify-end flex-1">
@@ -59,23 +80,28 @@ const Post = ({ post }: any) => {
           </div>
           <div className="flex flex-col gap-3 overflow-hidden">
             <span>{post.text}</span>
-            {post.img && (
-              <img
-                src={post.img}
-                className="h-80 object-contain rounded-lg border border-gray-700"
-                alt=""
-              />
+            {post.postImg && (
+              <div className="flex justify-center items-center h-80 border border-gray-700">
+                <img
+                  src={post.postImg}
+                  className="h-80 rounded-2xl p-2 mx-2"
+                  alt={post.text}
+                />
+              </div>
             )}
           </div>
           <div className="flex justify-between mt-3">
             <div className="flex gap-4 items-center w-2/3 justify-between">
               <div
                 className="flex gap-1 items-center cursor-pointer group"
-                // onClick={() =>
-                //   document
-                //     .getElementById("comments_modal" + post._id)
-                //     .showModal()
-                // }
+                onClick={() => {
+                  const modal = document.getElementById(
+                    "comments_modal" + post._id
+                  ) as HTMLDialogElement | null;
+                  if (modal) {
+                    modal.showModal();
+                  }
+                }}
               >
                 <FaRegComment className="w-4 h-4  text-slate-500 group-hover:text-sky-400" />
                 <span className="text-sm text-slate-500 group-hover:text-sky-400">
@@ -101,8 +127,7 @@ const Post = ({ post }: any) => {
                           <div className="w-8 rounded-full">
                             <img
                               src={
-                                comment.user.profileImg ||
-                                "/avatar-placeholder.png"
+                                comment.user.imgUrl || "/avatar-placeholder.png"
                               }
                             />
                           </div>

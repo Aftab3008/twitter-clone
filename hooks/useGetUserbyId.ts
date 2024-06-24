@@ -1,8 +1,8 @@
-import { getUserbyclerkId } from "@/lib/actions/user.actions";
+import { getUserbyId } from "@/lib/actions/user.actions";
 import { Usertypes } from "@/types";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export const useGetUser = (clerkId: string) => {
+export const useGetUserbyId = (id: string) => {
   const [user, setUser] = useState<Usertypes | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +12,7 @@ export const useGetUser = (clerkId: string) => {
       setLoading(true);
       setError(null);
       try {
-        const userData = await getUserbyclerkId(clerkId);
+        const userData = await getUserbyId(id);
         setUser(userData);
       } catch (err: any) {
         setError(err.message);
@@ -21,10 +21,10 @@ export const useGetUser = (clerkId: string) => {
       }
     };
 
-    if (clerkId) {
+    if (id) {
       fetchUser();
     }
-  }, [clerkId]);
+  }, [id]);
 
   return { user, loading, error };
 };

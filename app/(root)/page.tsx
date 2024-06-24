@@ -1,6 +1,5 @@
 "use client";
 
-import CreatePost from "@/components/shared/CreatePost";
 import CreatePostZod from "@/components/shared/CreatePostZod";
 import Posts from "@/components/shared/Posts";
 import { useState } from "react";
@@ -38,7 +37,7 @@ export default function Home() {
         <CreatePostZod />
 
         {/* POSTS */}
-        {/* <Posts feedType={feedType} /> */}
+        <Posts feedType={feedType} />
       </div>
     </>
   );

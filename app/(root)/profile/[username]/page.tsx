@@ -1,6 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
@@ -10,44 +9,97 @@ import Link from "next/link";
 import { POSTS } from "@/constants/dummy";
 import EditProfileModal from "@/components/shared/EditProfileModal";
 import Posts from "@/components/shared/Posts";
+import { useGetProfile } from "@/hooks/useGetProfile";
+import {
+  convertFileToUrl,
+  formatMemberSinceDate,
+  handleError,
+} from "@/lib/utils";
+import { useUser } from "@clerk/nextjs";
+import { useUploadThing } from "@/lib/uploadthing";
+import toast from "react-hot-toast";
+import { updateByUsername } from "@/lib/actions/user.actions";
+import { Loader } from "lucide-react";
+import { Usertypes } from "@/types";
+import { useGetPosts } from "@/hooks/useGetPosts";
 
-const ProfilePage = () => {
+type UserData = {
+  user: Usertypes | null;
+  loading: boolean;
+  error: string | null;
+};
+
+const ProfilePage = ({ params }: { params: { username: string } }) => {
+  const { startUpload } = useUploadThing("imageUploader");
   const [coverImg, setCoverImg] = useState<string | null>(null);
   const [profileImg, setProfileImg] = useState<string | null>(null);
+  const [profileImgFile, setProfileImgFile] = useState<File | null>(null);
+  const [coverImgFile, setCoverImgFile] = useState<File | null>(null);
   const [feedType, setFeedType] = useState("posts");
-
+  const [isEditing, setIsEditing] = useState(false);
   const coverImgRef = useRef<HTMLInputElement | null>(null);
   const profileImgRef = useRef<HTMLInputElement | null>(null);
+  const [{ user, loading, error }, setUserData] = useState<UserData>({
+    user: null,
+    loading: true,
+    error: null,
+  });
+  const { posts } = useGetPosts("", params.username);
 
-  const isLoading = false;
-  const isMyProfile = true;
+  const {
+    user: profileUser,
+    loading: isLoading,
+    error: profileError,
+  } = useGetProfile(params.username);
+  const { user: currentUser } = useUser();
+  const isMyProfile = currentUser?.username === params.username;
+  useEffect(() => {
+    setUserData({
+      user: profileUser,
+      loading: isLoading,
+      error: profileError,
+    });
+  }, [profileUser, isLoading, profileError]);
 
-  const user = {
-    _id: "1",
-    fullName: "John Doe",
-    username: "johndoe",
-    profileImg: "/avatars/boy2.png",
-    coverImg: "/cover.png",
-    bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    link: "https://youtube.com/@asaprogrammer_",
-    following: ["1", "2", "3"],
-    followers: ["1", "2", "3"],
-  };
-
-  const handleImgChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    state: string
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        state === "coverImg" && setCoverImg(reader.result as string);
-        state === "profileImg" && setProfileImg(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  async function updateProfile() {
+    try {
+      let profileImgUrl = null;
+      let coverImgUrl = null;
+      setIsEditing(true);
+      if (profileImgFile) {
+        profileImgUrl = await startUpload([profileImgFile]);
+        if (!profileImgUrl) {
+          toast.error("Failed to upload profile image");
+          return;
+        }
+      }
+      if (coverImgFile) {
+        coverImgUrl = await startUpload([coverImgFile]);
+        if (!coverImgUrl) {
+          toast.error("Failed to upload cover image");
+          return;
+        }
+      }
+      const updatedUser = await updateByUsername(params.username, {
+        imgUrl: profileImgUrl?.[0]?.url,
+        coverImgUrl: coverImgUrl?.[0]?.url,
+      });
+      if (!updatedUser) {
+        toast.error("Failed to update profile");
+      } else {
+        setUserData({ user: updatedUser, loading: false, error: null });
+        toast.success("Profile updated successfully");
+      }
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setProfileImg(null);
+      setCoverImg(null);
+      setCoverImgFile(null);
+      setProfileImgFile(null);
+      setIsEditing(false);
     }
-  };
+  }
 
   return (
     <>
@@ -67,14 +119,14 @@ const ProfilePage = () => {
                 <div className="flex flex-col">
                   <p className="font-bold text-lg">{user?.fullName}</p>
                   <span className="text-sm text-slate-500">
-                    {POSTS?.length} posts
+                    {posts?.length} posts
                   </span>
                 </div>
               </div>
               {/* COVER IMG */}
               <div className="relative group/cover">
                 <img
-                  src={coverImg || user?.coverImg || "/cover.png"}
+                  src={coverImg || user?.coverImgUrl || "/cover.png"}
                   className="h-52 w-full object-cover"
                   alt="cover image"
                 />
@@ -92,23 +144,33 @@ const ProfilePage = () => {
                   hidden
                   accept="image/*"
                   ref={coverImgRef}
-                  onChange={(e) => handleImgChange(e, "coverImg")}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setCoverImg(convertFileToUrl(file));
+                      setCoverImgFile(file);
+                    }
+                  }}
                 />
                 <input
                   type="file"
                   hidden
                   accept="image/*"
                   ref={profileImgRef}
-                  onChange={(e) => handleImgChange(e, "profileImg")}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setProfileImg(convertFileToUrl(file));
+                      setProfileImgFile(file);
+                    }
+                  }}
                 />
                 {/* USER AVATAR */}
                 <div className="avatar absolute -bottom-16 left-4">
                   <div className="w-32 rounded-full relative group/avatar">
                     <img
                       src={
-                        profileImg ||
-                        user?.profileImg ||
-                        "/avatar-placeholder.png"
+                        profileImg || user?.imgUrl || "/avatar-placeholder.png"
                       }
                     />
                     <div className="absolute top-5 right-3 p-1 bg-primary rounded-full group-hover/avatar:opacity-100 opacity-0 cursor-pointer">
@@ -135,9 +197,14 @@ const ProfilePage = () => {
                 {(coverImg || profileImg) && (
                   <button
                     className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2"
-                    onClick={() => alert("Profile updated successfully")}
+                    onClick={updateProfile}
+                    disabled={isEditing}
                   >
-                    Update
+                    {isEditing ? (
+                      <Loader color="white" className="animate-spin" />
+                    ) : (
+                      "Update Profile"
+                    )}
                   </button>
                 )}
               </div>
@@ -170,7 +237,7 @@ const ProfilePage = () => {
                   <div className="flex gap-2 items-center">
                     <IoCalendarOutline className="w-4 h-4 text-slate-500" />
                     <span className="text-sm text-slate-500">
-                      Joined July 2021
+                      {formatMemberSinceDate(user?.createdAt)}
                     </span>
                   </div>
                 </div>
@@ -196,7 +263,7 @@ const ProfilePage = () => {
                 >
                   Posts
                   {feedType === "posts" && (
-                    <div className="absolute bottom-0 w-10 h-1 rounded-full bg-primary" />
+                    <div className="absolute bottom-0 w-10 h-1 rounded-full bg-blue-1" />
                   )}
                 </div>
                 <div
@@ -205,14 +272,14 @@ const ProfilePage = () => {
                 >
                   Likes
                   {feedType === "likes" && (
-                    <div className="absolute bottom-0 w-10  h-1 rounded-full bg-primary" />
+                    <div className="absolute bottom-0 w-10  h-1 rounded-full bg-blue-1" />
                   )}
                 </div>
               </div>
             </>
           )}
 
-          <Posts />
+          <Posts username={params.username} />
         </div>
       </div>
     </>
